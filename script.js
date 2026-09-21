@@ -18,21 +18,16 @@ const TEAM = [
 ];
 
 // 球速: T = ボールがホームベースに届くまでの時間(ms)
+// vanish:true の球種は、飛んでいる途中で姿が消える魔球
 const SPEEDS = [
-  { key: 'slow',  label: '低速',   kmh: 90,  T: 1650, w: 30 },
-  { key: 'mid',   label: '中速',   kmh: 120, T: 1200, w: 30 },
-  { key: 'fast',  label: '高速',   kmh: 145, T: 880,  w: 25 },
-  { key: 'super', label: '超高速', kmh: 165, T: 640,  w: 15 }
+  { key: 'slow',     label: '低速',       kmh: 90,  T: 1650 },
+  { key: 'mid',      label: '中速',       kmh: 120, T: 1200 },
+  { key: 'fast',     label: '高速',       kmh: 145, T: 880  },
+  { key: 'super',    label: '超高速',     kmh: 165, T: 640  },
+  { key: 'godspeed', label: '神速',       kmh: 190, T: 480  },
+  { key: 'vanish',   label: '消える魔球', kmh: 175, T: 560, vanish: true, dispKmh: '？？？km/h' }
 ];
 
-// タイミングゲージ(左から右へ 0→1)。針の位置 p の中心 0.5 がボール到達の瞬間
-const ZONES = [
-  { kind: 'k',  w: .27 }, { kind: 'g',  w: .09 }, { kind: 'f',  w: .06 },
-  { kind: 'h1', w: .04 }, { kind: 'h2', w: .03 }, { kind: 'h3', w: .02 },
-  { kind: 'hr', w: .03 },
-  { kind: 'h3', w: .02 }, { kind: 'h2', w: .03 }, { kind: 'h1', w: .04 },
-  { kind: 'f',  w: .06 }, { kind: 'dp', w: .09 }, { kind: 'k',  w: .22 }
-];
 const ZINFO = {
   k:  { label: '三振',       vert: false },
   g:  { label: 'ゴロ',       vert: false },
@@ -43,7 +38,61 @@ const ZINFO = {
   h3: { label: '三塁打',     vert: true  },
   hr: { label: 'ホームラン', vert: true  }
 };
-const NEEDLE_END = 0.78;   // これ以降は「見逃し三振」
+
+// 難易度: 下から甲子園 < 大学野球 < プロ野球 < メジャー。
+// レベルが上がるほど、タイミングゲージのヒット系ゾーンが狭く、アウト系ゾーンが広くなり、
+// 速い球・消える魔球が出る確率も上がる。
+const LEVELS = [
+  {
+    key: 'koshien', label: '甲子園', sub: '基礎編',
+    speedWeights: { slow: 30, mid: 30, fast: 25, super: 15, godspeed: 0,  vanish: 0 },
+    zones: [
+      { kind: 'k',  w: .27 }, { kind: 'g',  w: .09 },  { kind: 'f',  w: .06 },
+      { kind: 'h1', w: .04 }, { kind: 'h2', w: .03 },  { kind: 'h3', w: .02 },
+      { kind: 'hr', w: .03 },
+      { kind: 'h3', w: .02 }, { kind: 'h2', w: .03 },  { kind: 'h1', w: .04 },
+      { kind: 'f',  w: .06 }, { kind: 'dp', w: .09 },  { kind: 'k',  w: .22 }
+    ]
+  },
+  {
+    key: 'college', label: '大学野球', sub: 'やや難しい',
+    speedWeights: { slow: 20, mid: 28, fast: 28, super: 18, godspeed: 6,  vanish: 0 },
+    zones: [
+      { kind: 'k',  w: .28 },  { kind: 'g',  w: .095 }, { kind: 'f',  w: .065 },
+      { kind: 'h1', w: .035 }, { kind: 'h2', w: .025 }, { kind: 'h3', w: .015 },
+      { kind: 'hr', w: .025 },
+      { kind: 'h3', w: .015 }, { kind: 'h2', w: .025 }, { kind: 'h1', w: .035 },
+      { kind: 'f',  w: .065 }, { kind: 'dp', w: .095 }, { kind: 'k',  w: .225 }
+    ]
+  },
+  {
+    key: 'pro', label: 'プロ野球', sub: '難しい',
+    speedWeights: { slow: 10, mid: 22, fast: 28, super: 22, godspeed: 14, vanish: 4 },
+    zones: [
+      { kind: 'k',  w: .29 }, { kind: 'g',  w: .10 }, { kind: 'f',  w: .07 },
+      { kind: 'h1', w: .03 }, { kind: 'h2', w: .02 }, { kind: 'h3', w: .01 },
+      { kind: 'hr', w: .02 },
+      { kind: 'h3', w: .01 }, { kind: 'h2', w: .02 }, { kind: 'h1', w: .03 },
+      { kind: 'f',  w: .07 }, { kind: 'dp', w: .10 }, { kind: 'k',  w: .23 }
+    ]
+  },
+  {
+    key: 'mlb', label: 'メジャー', sub: '最難関',
+    speedWeights: { slow: 5, mid: 15, fast: 25, super: 25, godspeed: 20, vanish: 10 },
+    zones: [
+      { kind: 'k',  w: .30 },  { kind: 'g',  w: .105 }, { kind: 'f',  w: .075 },
+      { kind: 'h1', w: .025 }, { kind: 'h2', w: .015 }, { kind: 'h3', w: .008 },
+      { kind: 'hr', w: .014 },
+      { kind: 'h3', w: .008 }, { kind: 'h2', w: .015 }, { kind: 'h1', w: .025 },
+      { kind: 'f',  w: .075 }, { kind: 'dp', w: .105 }, { kind: 'k',  w: .23 }
+    ]
+  }
+];
+
+// タイミングゲージ(左から右へ 0→1)。針の位置 p の中心 0.5 がボール到達の瞬間。
+// 選択された難易度によって差し替わる(buildGauge 参照)
+let ZONES = LEVELS[0].zones;
+let NEEDLE_END = 1 - ZONES[ZONES.length - 1].w;   // これ以降は「見逃し三振」
 
 /* =========================================================
    2. ユーティリティ
@@ -80,6 +129,7 @@ function schedule(ms, fn) {
    ========================================================= */
 const state = {
   names: ['プレイヤー1', 'プレイヤー2'],
+  level: 0,                   // 0=甲子園 1=大学野球 2=プロ野球 3=メジャー
   inning: 1,
   half: 0,                    // 0=オモテ(先攻) 1=ウラ(後攻)
   scores: [[0], []],          // [チーム][回] = 得点 or 'X'
@@ -106,18 +156,25 @@ const bannerEl = $('banner'), toastEl = $('toast'), cueEl = $('cue'), speedEl = 
 const titleScreen = $('titleScreen'), ov = $('overlay');
 const ovTitle = $('ovTitle'), ovBody = $('ovBody'), ovBtn = $('ovBtn'), ovBtn2 = $('ovBtn2');
 
-/* ---- ゲージ生成 ---- */
-const segEls = ZONES.map(z => {
-  const info = ZINFO[z.kind];
-  const d = document.createElement('div');
-  d.className = 'seg z-' + z.kind + (info.vert ? ' vert' : '');
-  d.style.flexGrow = String(z.w * 100);
-  const sp = document.createElement('span');
-  sp.textContent = info.label;
-  d.appendChild(sp);
-  gaugeEl.appendChild(d);
-  return d;
-});
+/* ---- ゲージ生成(難易度ごとに幅が変わるので毎回作り直す) ---- */
+let segEls = [];
+function buildGauge(levelIdx) {
+  state.level = levelIdx;
+  ZONES = LEVELS[levelIdx].zones;
+  NEEDLE_END = 1 - ZONES[ZONES.length - 1].w;
+  gaugeEl.innerHTML = '';
+  segEls = ZONES.map(z => {
+    const info = ZINFO[z.kind];
+    const d = document.createElement('div');
+    d.className = 'seg z-' + z.kind + (info.vert ? ' vert' : '');
+    d.style.flexGrow = String(z.w * 100);
+    const sp = document.createElement('span');
+    sp.textContent = info.label;
+    d.appendChild(sp);
+    gaugeEl.appendChild(d);
+    return d;
+  });
+}
 
 function zoneIndexAt(p) {
   let acc = 0;
@@ -150,6 +207,7 @@ function renderHUD() {
   $('scoreboard').innerHTML = h;
 
   $('inningLabel').textContent = (state.inning > MAX_INNING ? '延長' : '') + state.inning + '回' + (state.half ? 'ウラ' : 'オモテ');
+  $('levelTag').textContent = phase === 'title' ? '' : LEVELS[state.level].label;
   document.querySelectorAll('#outs i').forEach((e, i) => e.classList.toggle('on', state.outs > i));
   ['baseB1', 'baseB2', 'baseB3'].forEach((id, i) => $(id).classList.toggle('on', state.bases[i]));
 }
@@ -589,6 +647,10 @@ function updateBall(now) {
     ball.h = lerp(38, 14, u) + Math.sin(u * Math.PI) * 4;
     ball.r = 3.2 + 6 * Math.pow(u, 1.5);
     ball.alpha = 1;
+    if (pitch.sp.vanish) {                        // 消える魔球: 飛行の大半で見えなくなる
+      const m = clamp((u - 0.10) / 0.72, 0, 1);
+      ball.alpha = 1 - Math.sin(m * Math.PI) * 0.93;
+    }
   } else if (ball.mode === 'mitt') {
     ball.gx = 482; ball.gy = 470; ball.h = 13; ball.r = 9; ball.alpha = 1;
   } else if (ball.mode === 'hit') {
@@ -763,9 +825,11 @@ function drawCatcher(def) {
    7. 試合の流れ
    ========================================================= */
 function chooseSpeed() {
-  let r = Math.random() * SPEEDS.reduce((a, s) => a + s.w, 0);
-  for (const s of SPEEDS) { if ((r -= s.w) <= 0) return s; }
-  return SPEEDS[1];
+  const weights = LEVELS[state.level].speedWeights;
+  const total = SPEEDS.reduce((a, s) => a + (weights[s.key] || 0), 0);
+  let r = Math.random() * total;
+  for (const s of SPEEDS) { const w = weights[s.key] || 0; if ((r -= w) <= 0) return s; }
+  return SPEEDS[0];
 }
 
 function clearVisuals() {
@@ -790,7 +854,7 @@ function newGame() {
   setCue('');
   renderHUD();
   sfx.fanfare(false);
-  showOverlay('プレイボール!', `1回オモテ\n${state.names[0]}のこうげきからスタート`, 'スタート', beginAtBat);
+  showOverlay('プレイボール!', `難易度: ${LEVELS[state.level].label}\n1回オモテ\n${state.names[0]}のこうげきからスタート`, 'スタート', beginAtBat);
 }
 
 function beginAtBat() {
@@ -812,7 +876,7 @@ function releasePitch() {
   pitch.t0 = now; pitch.swung = false; pitch.mitt = false; pitch.missPlanned = false; pitch.released = true;
   ball.mode = 'pitch';
   sfx.pitch();
-  speedEl.textContent = `${pitch.sp.label}  ${pitch.sp.kmh}km/h`;
+  speedEl.textContent = `${pitch.sp.label}  ${pitch.sp.dispKmh || (pitch.sp.kmh + 'km/h')}`;
   speedEl.className = 'show s-' + pitch.sp.key;
   setCue(`${state.names[state.half]}　タイミングを合わせて「打つ！」`);
   swingBtn.classList.add('ready');
@@ -1128,18 +1192,33 @@ window.addEventListener('keydown', e => {
 });
 
 /* =========================================================
-   10. タイトル → 開始
+   10. 難易度選択 → タイトル → 開始
    ========================================================= */
+const levelBtns = Array.from(document.querySelectorAll('.levelBtn'));
+let selectedLevel = 0;
+function selectLevel(idx) {
+  selectedLevel = idx;
+  levelBtns.forEach(b => {
+    const on = Number(b.dataset.level) === idx;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+}
+levelBtns.forEach(b => b.addEventListener('click', () => guard(() => selectLevel(Number(b.dataset.level)))));
+selectLevel(0);
+
 $('startBtn').addEventListener('click', () => guard(() => {
   initAudio();
   const n0 = $('name0').value.trim() || 'プレイヤー1';
   const n1 = $('name1').value.trim() || 'プレイヤー2';
   state.names = [n0, n1];
+  buildGauge(selectedLevel);
   titleScreen.hidden = true;
   newGame();
 }));
 
 refreshAudioBtns();
+buildGauge(0);
 renderHUD();
 setNeedle(0);
 requestAnimationFrame(frame);

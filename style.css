@@ -95,6 +95,16 @@ button { font-family: inherit; }
   color: var(--gold);
   white-space: nowrap;
 }
+#levelTag {
+  font-size: clamp(10px, 1.6vw, 13px);
+  font-weight: 800;
+  color: #bcd0ea;
+  padding: 2px 8px;
+  border: 1px solid #4a6489;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+#levelTag:empty { display: none; }
 #outs { display: flex; align-items: center; gap: 5px; }
 #outs .outName { font-size: 12px; font-weight: 800; color: #ffb4a8; margin-right: 2px; }
 #outs i { width: 16px; height: 16px; border-radius: 50%; background: #3a2222; border: 2px solid #7c4a4a; }
@@ -157,11 +167,14 @@ button { font-family: inherit; }
   transition: opacity .12s, transform .12s;
 }
 #speedLabel.show { opacity: 1; transform: scale(1); }
-#speedLabel.s-slow  { background: #2a9d8f; }
-#speedLabel.s-mid   { background: #3a86ff; }
-#speedLabel.s-fast  { background: #f4a261; color: #2b1600; }
-#speedLabel.s-super { background: #e5383b; animation: shake .18s linear infinite; }
+#speedLabel.s-slow      { background: #2a9d8f; }
+#speedLabel.s-mid       { background: #3a86ff; }
+#speedLabel.s-fast      { background: #f4a261; color: #2b1600; }
+#speedLabel.s-super     { background: #e5383b; animation: shake .18s linear infinite; }
+#speedLabel.s-godspeed  { background: #6a1b9a; animation: shake .12s linear infinite; }
+#speedLabel.s-vanish    { background: #0a0a0f; border-color: #fff; animation: vanishBlink .5s steps(2, end) infinite; }
 @keyframes shake { 0%,100% { translate: 0 0; } 25% { translate: -2px 1px; } 75% { translate: 2px -1px; } }
+@keyframes vanishBlink { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
 
 #banner {
   position: absolute; left: 50%; top: 36%;
@@ -322,6 +335,30 @@ button { font-family: inherit; }
 
 .howto { margin: 0 0 18px; padding-left: 1.2em; text-align: left; font-size: 14px; line-height: 1.7; }
 
+.level-select { margin: 0 0 18px; text-align: left; }
+.level-caption { display: block; margin-bottom: 6px; font-weight: 800; font-size: 14px; color: var(--board-line); }
+.level-btns { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.levelBtn {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 8px 2px;
+  border-radius: 10px;
+  border: 2px solid #4a6f52;
+  background: #0f2c1c;
+  color: #d8e8dc;
+  font-weight: 800;
+  font-size: clamp(11px, 2.4vw, 14px);
+  cursor: pointer;
+  line-height: 1.3;
+}
+.levelBtn small { font-weight: 600; font-size: .78em; opacity: .8; }
+.levelBtn.active {
+  border-color: var(--gold);
+  background: linear-gradient(#2c5c37, #1a3f26);
+  color: #fff;
+  box-shadow: 0 0 0 2px rgba(255, 210, 63, .35) inset;
+}
+.levelBtn:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+
 button.primary, button.secondary {
   display: block; width: 100%;
   border: 0; border-radius: 14px;
@@ -349,5 +386,5 @@ button:focus-visible { outline: 4px solid #fff; outline-offset: 3px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  #speedLabel.s-super { animation: none; }
+  #speedLabel.s-super, #speedLabel.s-godspeed, #speedLabel.s-vanish { animation: none; }
 }

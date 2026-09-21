@@ -19,6 +19,7 @@
 
     <div id="status">
       <div id="inningLabel">1回オモテ</div>
+      <div id="levelTag"></div>
       <div id="outs" aria-label="アウトカウント">
         <span class="outName">OUT</span>
         <i></i><i></i><i></i>
@@ -77,6 +78,16 @@
       <li>下のゲージの針が真ん中に来た時がホームラン。ずれるほどヒット → ゴロ → 三振</li>
       <li>3アウトで攻守交替。3回が終わって点が多い方の勝ち</li>
     </ul>
+
+    <div class="level-select" role="radiogroup" aria-label="難易度">
+      <span class="level-caption">難易度</span>
+      <div class="level-btns">
+        <button type="button" class="levelBtn" data-level="0" aria-pressed="true">甲子園<small>基礎編</small></button>
+        <button type="button" class="levelBtn" data-level="1" aria-pressed="false">大学野球<small>やや難しい</small></button>
+        <button type="button" class="levelBtn" data-level="2" aria-pressed="false">プロ野球<small>難しい</small></button>
+        <button type="button" class="levelBtn" data-level="3" aria-pressed="false">メジャー<small>最難関</small></button>
+      </div>
+    </div>
 
     <button id="startBtn" class="primary" type="button">ゲームスタート</button>
   </div>
