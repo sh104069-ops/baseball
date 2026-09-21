@@ -27,11 +27,11 @@ const SPEEDS = [
 
 // タイミングゲージ(左から右へ 0→1)。針の位置 p の中心 0.5 がボール到達の瞬間
 const ZONES = [
-  { kind: 'k',  w: .22 }, { kind: 'g',  w: .08 }, { kind: 'f',  w: .05 },
-  { kind: 'h1', w: .05 }, { kind: 'h2', w: .04 }, { kind: 'h3', w: .03 },
-  { kind: 'hr', w: .06 },
-  { kind: 'h3', w: .03 }, { kind: 'h2', w: .04 }, { kind: 'h1', w: .05 },
-  { kind: 'f',  w: .05 }, { kind: 'dp', w: .08 }, { kind: 'k',  w: .22 }
+  { kind: 'k',  w: .27 }, { kind: 'g',  w: .09 }, { kind: 'f',  w: .06 },
+  { kind: 'h1', w: .04 }, { kind: 'h2', w: .03 }, { kind: 'h3', w: .02 },
+  { kind: 'hr', w: .03 },
+  { kind: 'h3', w: .02 }, { kind: 'h2', w: .03 }, { kind: 'h1', w: .04 },
+  { kind: 'f',  w: .06 }, { kind: 'dp', w: .09 }, { kind: 'k',  w: .22 }
 ];
 const ZINFO = {
   k:  { label: '三振',       vert: false },
