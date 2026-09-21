@@ -1,1 +1,97 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0d1b2a">
+<title>やきゅうバッティングゲーム</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
 
+<div id="app">
+
+  <!-- スコアボード / ステータス -->
+  <header id="hud">
+    <div id="scoreboard" aria-label="スコアボード"></div>
+
+    <div id="status">
+      <div id="inningLabel">1回オモテ</div>
+      <div id="outs" aria-label="アウトカウント">
+        <span class="outName">OUT</span>
+        <i></i><i></i><i></i>
+      </div>
+      <svg id="basesSvg" viewBox="0 0 60 50" aria-label="ランナー">
+        <rect id="baseB2" x="24" y="5" width="12" height="12" transform="rotate(45 30 11)"/>
+        <rect id="baseB1" x="41" y="22" width="12" height="12" transform="rotate(45 47 28)"/>
+        <rect id="baseB3" x="7"  y="22" width="12" height="12" transform="rotate(45 13 28)"/>
+        <polygon id="baseHome" points="24,42 36,42 36,46 30,50 24,46"/>
+      </svg>
+    </div>
+
+    <div id="audioBtns">
+      <button id="bgmBtn" type="button">♪ BGM ON</button>
+      <button id="seBtn" type="button">🔊 SE ON</button>
+    </div>
+  </header>
+
+  <!-- グラウンド -->
+  <main id="stageWrap">
+    <canvas id="stage" width="1280" height="720"></canvas>
+    <div id="cue"></div>
+    <div id="speedLabel"></div>
+    <div id="banner"></div>
+    <div id="toast"></div>
+  </main>
+
+  <!-- タイミングゲージ / 打つボタン -->
+  <footer id="controls">
+    <div id="gaugeWrap">
+      <div id="gauge"></div>
+      <div id="needle"></div>
+    </div>
+    <button id="swingBtn" type="button">打つ！<small>クリック / タップ / スペースキー</small></button>
+  </footer>
+
+</div>
+
+<!-- タイトル画面 -->
+<div id="titleScreen" class="overlay">
+  <div class="card">
+    <h1>やきゅうバッティング<br>ゲーム</h1>
+    <p class="lead">2人で3回勝負。ボールに合わせて「打つ！」</p>
+
+    <div class="names">
+      <label><span class="chip c0"></span>先攻
+        <input id="name0" type="text" maxlength="8" value="プレイヤー1" autocomplete="off">
+      </label>
+      <label><span class="chip c1"></span>後攻
+        <input id="name1" type="text" maxlength="8" value="プレイヤー2" autocomplete="off">
+      </label>
+    </div>
+
+    <ul class="howto">
+      <li>ボールがホームベースに来る瞬間に「打つ！」を押す（クリック・タップ・スペースキー）</li>
+      <li>下のゲージの針が真ん中に来た時がホームラン。ずれるほどヒット → ゴロ → 三振</li>
+      <li>3アウトで攻守交替。3回が終わって点が多い方の勝ち</li>
+    </ul>
+
+    <button id="startBtn" class="primary" type="button">ゲームスタート</button>
+  </div>
+</div>
+
+<!-- メッセージ画面(プレイボール / チェンジ / 試合終了) -->
+<div id="overlay" class="overlay" hidden>
+  <div class="card">
+    <h2 id="ovTitle"></h2>
+    <p id="ovBody"></p>
+    <button id="ovBtn" class="primary" type="button">スタート</button>
+    <button id="ovBtn2" class="secondary" type="button" hidden>タイトルにもどる</button>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
